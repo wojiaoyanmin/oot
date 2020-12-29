@@ -259,6 +259,7 @@ class SOLOHead(nn.Module):
              img_metas,
              cfg,
              gt_bboxes_ignore=None):
+        
         mask_feat_size = ins_pred.size()[-2:]
         #parts
         ins_label_list, cate_label_list, ins_ind_label_list, grid_order_list = multi_apply(
