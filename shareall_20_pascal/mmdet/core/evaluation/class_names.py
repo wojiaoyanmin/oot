@@ -152,7 +152,9 @@ def MHP_classes():
                  'Other-accessary',
                  'Other-upper-body-clothes',
                  'Other-lower-body-clothes' ]
-
+def PAS_classes():
+    return ['head','torso','u-arms','l-arms','u-legs','l-legs' ]
+    
 dataset_aliases = {
     'voc': ['voc', 'pascal_voc', 'voc07', 'voc12'],
     'imagenet_det': ['det', 'imagenet_det', 'ilsvrc_det'],

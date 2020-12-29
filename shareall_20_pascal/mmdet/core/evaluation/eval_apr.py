@@ -237,7 +237,6 @@ def compute_class_ap(apr_results, image_id_list, class_id, iou_threshold,INST_PA
         gt_mask = np.stack(gt_mask)
         pre_mask = np.stack(pre_mask)
         # Compute IoU overlaps [pred_masks, gt_makss]
-        
         overlaps = compute_mask_overlaps(pre_mask, gt_mask)
 
         # print('overlaps.shape',overlaps.shape)
