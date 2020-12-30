@@ -10,10 +10,10 @@ model=dict(
 data = dict(
     samples_per_gpu=2)
 optimizer = dict(type='SGD', lr=0.002, momentum=0.9, weight_decay=0.0001)
-total_epochs = 12
+total_epochs = 36
 lr_config = dict(
     policy='step',
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=0.01,
-    step=[9,11])
+    step=[27,33])

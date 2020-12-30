@@ -184,28 +184,30 @@ def multi_gpu_test(model, data_loader, args, cfg, tmpdir=None):
 
     # if os.path.exists('tmp'):
     #     shutil.rmtree('tmp')
-    # if os.path.exists('apr'):
-    #     shutil.rmtree('apr')
-    # mmcv.mkdir_or_exist(apr_output_dirs)
+    if os.path.exists('apr'):
+        shutil.rmtree('apr')
+    mmcv.mkdir_or_exist(apr_output_dirs)
     # mmcv.mkdir_or_exist(cache)
     for i, data in enumerate(data_loader):
         with torch.no_grad():
             pred_result = model(return_loss=False, rescale=True, **data)[0]
-
             key = pred_result[0]
             results_cache_add = cache + key + '.pklz'
             apr =pred_result[1]['INSTANCE']
+
             pred_result[1].pop('INSTANCE')
             #app
             app=pred_result[1]
             pickle.dump(app, gzip.open(results_cache_add, 'w'))
             #apr
             instance_seg_masks,instance_cate_labels,instance_cate_scores = apr
+            if instance_seg_masks is None:
+                continue
             results_apr_add = apr_output_dirs + key +'.pklz'
             pickle.dump(instance_seg_masks, gzip.open(results_apr_add, 'w'))
-            # for label,score in zip(instance_cate_labels, instance_cate_scores):
-            #     with open(os.path.join(apr_output_dirs, '%s.txt' % key), 'a') as f:
-            #         f.write('%d %f\n' % (label+1, score))
+            for label,score in zip(instance_cate_labels, instance_cate_scores):
+                with open(os.path.join(apr_output_dirs, '%s.txt' % key), 'a') as f:
+                    f.write('%d %f\n' % (label+1, score))
             # encoder_ins = get_masks(apr, num_classes=num_classes)
             # instance_results.append(encoder_ins)        
             results.append([key,results_cache_add,results_apr_add])

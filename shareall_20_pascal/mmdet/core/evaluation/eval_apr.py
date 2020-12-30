@@ -186,7 +186,7 @@ def compute_class_ap(apr_results, image_id_list, class_id, iou_threshold,INST_PA
         fp.append([])
 
     print("process class", APR_CLASSES[class_id], class_id)
-
+    
     for image_id in image_id_list:
         # print (image_id)
         inst_part_gt = Image.open(os.path.join(INST_PART_GT_DIR, '%s.png' % image_id))
@@ -237,6 +237,7 @@ def compute_class_ap(apr_results, image_id_list, class_id, iou_threshold,INST_PA
         gt_mask = np.stack(gt_mask)
         pre_mask = np.stack(pre_mask)
         # Compute IoU overlaps [pred_masks, gt_makss]
+
         overlaps = compute_mask_overlaps(pre_mask, gt_mask)
 
         # print('overlaps.shape',overlaps.shape)

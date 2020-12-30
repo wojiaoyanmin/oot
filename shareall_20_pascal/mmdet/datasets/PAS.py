@@ -247,13 +247,13 @@ class PASDataset(CocoDataset):
             metrics.remove('cityscapes')
 
         # left metrics are all coco metric
-        data_root = './data/pascal/'
+        data_root = './data/PAS/'
         PREDICT_DIR = './apr'
-        INST_PART_GT_DIR = './data/pascal/val/Instance_part_val'
+        INST_PART_GT_DIR = './data/PAS/val/Instance_part_val'
         IOU_THRE = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
         #IOU_THRE = [0.5]
         APR_CLASSES = ('Background','head','torso','u-arms','l-arms','u-legs','l-legs')
-        dat_list = get_data(data_root, 'val')
+        #dat_list = get_data(data_root, 'val')
         
         app_results={}
         for pred in results:        

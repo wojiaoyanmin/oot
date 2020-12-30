@@ -633,7 +633,6 @@ class SOLOHead(nn.Module):
 
         #!!!!!!!!parts
         # process.
-        
         inds = (cate_preds > cfg.score_thr)&(cate_preds==(torch.max(cate_preds,dim=1,keepdim=True))[0])
         # inds = (cate_preds > cfg.score_thr)
         cate_scores = cate_preds[inds]
@@ -855,8 +854,10 @@ class SOLOHead(nn.Module):
             final_mask = scipy.sparse.csr_matrix(final_mask.cpu().numpy())
             mask_list.append(final_mask)
             det_list.append(det)
+
         if len(instance_seg_masks)==0:
             return (img_name,None_results) , None
+
         instance_seg_masks = torch.cat(instance_seg_masks)
         instance_cate_labels = torch.Tensor(instance_cate_labels)
         instance_cate_scores = torch.Tensor(instance_cate_scores)
@@ -865,7 +866,7 @@ class SOLOHead(nn.Module):
         results['DETS']=det_list
         results['INSTANCE']=(instance_seg_masks,instance_cate_labels,instance_cate_scores)
 
-        
+       
         return (img_name,results) , None
 
 
