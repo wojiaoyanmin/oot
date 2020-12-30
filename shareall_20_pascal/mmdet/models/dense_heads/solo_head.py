@@ -193,7 +193,7 @@ class SOLOHead(nn.Module):
         human_feats = F.interpolate(human_feats, size=self.num_human_grids, mode='bilinear', align_corners=True)
         feats_human_kernel = human_feats
         feats_human_cate = human_feats[:,:-2,:,:].contiguous()
-        for conv in self.cate_convs:
+        for conv in self.human_cate_convs:
             feats_human_cate = conv(feats_human_cate)
         feats_human_cate = feats_human_cate.contiguous()
         for conv in self.kernel_convs:
