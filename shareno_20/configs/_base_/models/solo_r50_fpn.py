@@ -9,12 +9,7 @@ model=dict(
         frozen_stages=1,
         norm_cfg=dict(type='BN', requires_grad=True),
         norm_eval=True,
-        style='pytorch',
-        dcn=dict(
-            type='DCNv2',
-            deformable_groups=1,
-            fallback_on_stride=False),
-        stage_with_dcn=(False, True, True, True)),
+        style='pytorch'),
     neck=dict(
         type='FPN',
         in_channels=[256, 512, 1024, 2048],
@@ -28,7 +23,6 @@ model=dict(
         in_channels=256,
         stacked_convs=4,
         seg_feat_channels=512,
-        #conv_cfg=dict(type='DCNv2'),
         strides=[8, 8, 16, 16],
         #scale_ranges=((1, 48), (24, 96), (48, 192), (96,2048)),
         scale_ranges=((1, 96), (48, 192), (96, 384), (192,2048)),
@@ -62,7 +56,14 @@ model=dict(
         start_level=0,
         end_level=4,
         num_classes=256,
-        conv_cfg=dict(type='DCNv2'),
+        norm_cfg=dict(type='GN', num_groups=32, requires_grad=True)),
+    human_mask_feat_head=dict(
+        type='MaskFeatHead',
+        in_channels=256,
+        out_channels=128,
+        start_level=0,
+        end_level=4,
+        num_classes=256,
         norm_cfg=dict(type='GN', num_groups=32, requires_grad=True)),
 )
 train_cfg=dict()
