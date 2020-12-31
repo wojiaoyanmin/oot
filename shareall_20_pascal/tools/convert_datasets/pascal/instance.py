@@ -17,8 +17,11 @@ import pycocotools.mask as maskUtils
 from tqdm import trange, tqdm
 import numpy
 import cv2
+import utils
 import matplotlib.pyplot as plt
 import time
+import os
+import os.path as osp
 cihp_id2label={0: 'Background',
                 1: 'head',
                 2: 'torso',
@@ -27,16 +30,18 @@ cihp_id2label={0: 'Background',
                 5: 'u-legs',
                 6: 'l-legs',
                 }
+train_label =['head','torso','left-u-arms','left-l-arms','left-u-legs','left-l-legs','right-u-arms','right-l-arms','right-u-legs','right-l-legs']
+detailpart2partlabel={'':'',
 
-def collect_files(text_dir,Images_dir, Instance_dir ,Category_dir):
+}
+def collect_files(text_dir,Images_dir, Instance_dir):
     files = []
     suffix='jpg'
     flist = [line.strip() for line in open(text_dir).readlines()]
     for add in tqdm(flist, desc='Loading %s ..' % ('val')):
         Image_file = osp.join(Images_dir, add+'.jpg')
-        Instance_file = osp.join(Instance_dir, add+'.png')
-        segm_file = osp.join(Category_dir, add+'.png')
-        files.append((Image_file, Instance_file, segm_file))
+        Instance_file = osp.join(Instance_dir, add+'.mat')
+        files.append((Image_file, Instance_file))
     assert len(files), f'No images found in {Images_dir}'
     print(f'Loaded {len(files)} images from {Images_dir}')
     return files
@@ -54,7 +59,25 @@ def collect_annotations(files, nproc=1):
 
 
 def load_img_info(files):
-    Image_file, Instance_file , segm_file= files
+    Image_file, Instance_file= files
+
+    annotations = utils.load_annotations(Instance_file)
+    obj_cnt = 0
+
+    # Show original image with its mask:
+    for obj in annotations["objects"]:
+        if obj["class"] == "person":
+            img_list = {value:np.zeros_like(obj['mask']) for key,value in enumerate(train_label)}
+            obj_cnt = obj_cnt + 1
+            for part_id in detailpart2partlabel:
+                if detailpart2partlabel[part_id] in train_label:
+                    img_list[detailpart2partlabel[part_id]]
+            mask = np.asarray(Instance_img == id, dtype=np.uint8, order='F')
+        else:
+            continue
+
+
+
     Instance_img = mmcv.imread(Instance_file, 'unchanged')
     ids = np.unique(Instance_img)
     anno_info = []
@@ -86,7 +109,7 @@ def load_img_info(files):
         height=Instance_img.shape[0],
         width=Instance_img.shape[1],
         anno_info=anno_info,
-        segm_file=osp.basename(segm_file))
+        segm_file=None)
     return info
 
 def cvt_annotations(infos, out_json_name):
@@ -135,17 +158,15 @@ def parse_args():
 
 
 def main():
-    Images_dir='data/pascal/JPEGImages'
-    Instance_dir='data/pascal/Instance_part_train'
-    Categoriy_dir='data/pascal/Categories_ids'
-    out_dir='data/pascal/annotations'
+    Images_dir='data/PAS/JPEGImages'
+    Instance_dir='data/PAS/train/Annotations_Part'
+    text_dir = 'data/PAS/train/train_id.txt'
+    out_dir='data/PAS/annotations'
     mmcv.mkdir_or_exist(out_dir)
 
-    text_dir = 'data/pascal/list/train_id.txt'
 
     set_name = dict(
-        #train='Instance_train.json',
-        val='Instance_train.json'     
+        val='Instance_train.json'
         )
 
     for split, json_name in set_name.items():
@@ -155,8 +176,7 @@ def main():
             files = collect_files(
                 text_dir,
                 osp.join(Images_dir),
-                osp.join(Instance_dir),
-                osp.join(Categoriy_dir))
+                osp.join(Instance_dir))
             infos = collect_annotations(files, nproc=1)
             cvt_annotations(infos, osp.join(out_dir, json_name))
 
