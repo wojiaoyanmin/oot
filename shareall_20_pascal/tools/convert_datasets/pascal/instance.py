@@ -32,9 +32,31 @@ cihp_id2label={0: 'Background',
                 5: 'u-legs',
                 6: 'l-legs',
                 }
-train_label =['head','torso','left-u-arms','left-l-arms','left-u-legs','left-l-legs','right-u-arms','right-l-arms','right-u-legs','right-l-legs']
-detailpart2partlabel={'':'',
-
+train_label ={'head':1,'torso':2,'left-u-arms':3,'left-l-arms':4,'left-u-legs':5,'left-l-legs':6,'right-u-arms':3,'right-l-arms':4,'right-u-legs':5,'right-l-legs':6}
+detailpart2partlabel={'ruleg':'right-u-legs',
+                        'rlleg':'right-l-legs',
+                        'ruarm':'right-u-arms',
+                        'rlarm':'right-l-arms',
+                        'luleg':'left-u-legs',
+                        'llleg':'left-l-legs',
+                        'luarm':'left-u-arms',
+                        'llarm':'left-l-arms',
+                        'neck':'head',
+                        'torso':'torso',
+                        'nose':'head',
+                        'hair':'head',
+                        'mouth':'head',
+                        'lebrow':'head',
+                        'rebrow':'head',
+                        'lear':'head',
+                        'leye':'head',
+                        'reye':'head',
+                        'rear':'head',
+                        'head':'head',
+                        'rhand':'right-l-arms',
+                        'lhand':'left-l-arms',
+                        'lfoot':'left-l-legs',
+                        'rfoot':'right-l-legs'
 }
 
 
@@ -91,12 +113,12 @@ def collect_files(text_dir,Images_dir, Instance_dir):
 
 def collect_annotations(files, nproc=1):
     print('Loading annotation images')
-    # if nproc > 1:
-    #     images = mmcv.track_parallel_progress(
-    #         load_img_info, files, nproc=nproc)
-    # else:
-    #     images = mmcv.track_progress(load_img_info, files)
-    images=load_img_info(files[0])
+    if nproc > 1:
+        images = mmcv.track_parallel_progress(
+            load_img_info, files, nproc=nproc)
+    else:
+        images = mmcv.track_progress(load_img_info, files)
+    # images=load_img_info(files[3])
     return images
 
 
@@ -104,53 +126,51 @@ def load_img_info(files):
     Image_file, Instance_file= files
 
     annotations = load_annotations(Instance_file)
-    obj_cnt = 0
-
+    anno_info = []
+    zero_img=np.zeros_like(annotations["objects"][0]['mask'])
+    cnt=0
     # Show original image with its mask:
     for obj in annotations["objects"]:
+        
         if obj["class"] == "person":
-            pdb.set_trace()
-            img_list = {value:np.zeros_like(obj['mask']) for key,value in enumerate(train_label)}
-            obj_cnt = obj_cnt + 1
-            for part_id in detailpart2partlabel:
-                if detailpart2partlabel[part_id] in train_label:
-                    img_list[detailpart2partlabel[part_id]]
-            mask = np.asarray(Instance_img == id, dtype=np.uint8, order='F')
-        else:
-            continue
+            cnt=cnt+1
+            
+            img_list={}
+            for label in train_label.keys():
+                img_list[label]=zero_img
+            
+            for part_id in obj['parts']:
+                small_part_name=part_id['part_name']
+                small_part_mask=part_id['mask']
+                big_part_name= detailpart2partlabel[small_part_name]
 
-
-
-    Instance_img = mmcv.imread(Instance_file, 'unchanged')
-    ids = np.unique(Instance_img)
-    anno_info = []
-    for id in ids:
-        if id == 0:
-            continue
-        category_id = int(id)%len(cihp_id2label)-1  # 把background作为最后一个类别
-        instance_id= int(id)//len(cihp_id2label)
-        iscrowd = 0
-        mask = np.asarray(Instance_img == id, dtype=np.uint8, order='F')
-        mask_rle = maskUtils.encode(mask[:, :, None])[0]
-        area = maskUtils.area(mask_rle)
-        # convert to COCO style XYWH format
-        bbox = maskUtils.toBbox(mask_rle)
-        # for json encoding
-        mask_rle['counts'] = mask_rle['counts'].decode()
-        anno = dict(
-            iscrowd=iscrowd,
-            category_id=category_id,
-            instance_id=instance_id,
-            bbox=bbox.tolist(),
-            area=area.tolist(),
-            segmentation=mask_rle)
-        anno_info.append(anno)
+                img_list[big_part_name]=(small_part_mask+img_list[big_part_name]).astype(np.bool)
+            for big_part_name,mask in img_list.items():
+                if mask.sum()<=0:
+                    continue
+                else:
+                     mask = np.asarray(mask, dtype=np.uint8, order='F')
+                     iscrowd = 0
+                     mask_rle = maskUtils.encode(mask[:, :, None])[0]
+                     area = maskUtils.area(mask_rle)
+                    # convert to COCO style XYWH format
+                     bbox = maskUtils.toBbox(mask_rle)
+                    # for json encoding
+                     mask_rle['counts'] = mask_rle['counts'].decode()
+                     anno = dict(
+                        iscrowd=iscrowd,
+                        category_id=train_label[big_part_name]-1,
+                        instance_id=cnt,
+                        bbox=bbox.tolist(),
+                        area=area.tolist(),
+                        segmentation=mask_rle)
+                     anno_info.append(anno)
     video_name = osp.basename(osp.dirname(Image_file))
     info = dict(
         # remove img_prefix for filename
         file_name=osp.join(video_name, osp.basename(Image_file)),
-        height=Instance_img.shape[0],
-        width=Instance_img.shape[1],
+        height=zero_img.shape[0],
+        width=zero_img.shape[1],
         anno_info=anno_info,
         segm_file=None)
     return info
