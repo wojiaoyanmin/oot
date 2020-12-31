@@ -163,7 +163,8 @@ dataset_aliases = {
     'wider_face': ['WIDERFaceDataset', 'wider_face', 'WDIERFace'],
     'cityscapes': ['cityscapes'],
     'CIHP':['CIHP'],
-    'MHP':['MHP']
+    'MHP':['MHP'],
+    'PAS':['PAS']
 }
 
 

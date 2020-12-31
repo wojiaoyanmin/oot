@@ -689,6 +689,14 @@ class SOLOHead(nn.Module):
         cate_scores = cate_scores[sort_inds]
         cate_labels = cate_labels[sort_inds]
         sum_masks = sum_masks[sort_inds]
+        seg_preds = F.interpolate(seg_preds.unsqueeze(0),
+                                  size=upsampled_size_out,
+                                  mode='bilinear')[:, :, :h, :w]
+        seg_preds = F.interpolate(seg_preds,
+                                  size=ori_shape[:2],
+                                  mode='bilinear').squeeze(0)
+        seg_masks=seg_preds>cfg.mask_thr
+
         # sort_inds = torch.argsort(cate_scores, descending=True)
         # if len(sort_inds) > cfg.nms_pre:
         #     sort_inds = sort_inds[:cfg.nms_pre]
@@ -773,8 +781,13 @@ class SOLOHead(nn.Module):
         human_cate_scores = human_cate_scores[human_keep]
         human_cate_labels = human_cate_labels[human_keep]
 
-
-        human_seg_masks=human_seg_masks>cfg.mask_thr
+        human_seg_preds = F.interpolate(human_seg_preds.unsqueeze(0),
+                                  size=upsampled_size_out,
+                                  mode='bilinear')[:, :, :h, :w]
+        human_seg_preds = F.interpolate(human_seg_preds,
+                                  size=ori_shape[:2],
+                                  mode='bilinear').squeeze(0)
+        human_seg_masks=human_seg_preds>cfg.mask_thr
 
         #small to large
         # sem_pred=torch.zeros([self.num_classes+1, human_seg_masks.shape[-2] , seg_masks.shape[-1]], dtype=torch.float, device=human_seg_masks.device)
@@ -817,6 +830,7 @@ class SOLOHead(nn.Module):
             final_mask = torch.zeros([seg_masks.shape[-2] , seg_masks.shape[-1]], dtype=torch.uint8, device=seg_masks.device)
             for j in range(keep.sum()):
                 final_mask[part_mask[j]]=int(part_label[j])+1
+                
                 cur_score[part_mask[j]]=part_score[j]
             
             final_mask = final_mask * human_seg_masks[i]
@@ -831,12 +845,7 @@ class SOLOHead(nn.Module):
             if final_mask.sum()==0:
                 continue
             
-            final_mask = F.interpolate(final_mask.float().unsqueeze(0).unsqueeze(0),
-                                  size=upsampled_size_out,
-                                  mode='nearest')[:, :, :h, :w]
-            final_mask = F.interpolate(final_mask,
-                                  size=ori_shape[:2],
-                                  mode='nearest').squeeze(0).squeeze(0)
+            
             
             for j in torch.unique(final_mask):
                 if j ==0:
@@ -866,7 +875,7 @@ class SOLOHead(nn.Module):
         results['DETS']=det_list
         results['INSTANCE']=(instance_seg_masks,instance_cate_labels,instance_cate_scores)
 
-       
+        
         return (img_name,results) , None
 
 

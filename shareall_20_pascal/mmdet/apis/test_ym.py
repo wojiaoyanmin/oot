@@ -21,7 +21,51 @@ import scipy.sparse
 import pickle,gzip
 import mmcv
 import matplotlib.pyplot as plt
+import scipy.io as scio
+# def get_palette():
+#     datafile = "data/MHP/LV-MHP-v2_colormap.mat"
+#     data = (scio.loadmat(datafile)['MHP_colormap'].flatten() * 255).astype(int).tolist()
+#     return data
 
+def get_palette(num_cls):
+    """ Returns the color map for visualizing the segmentation mask.
+    Args:
+        num_cls: Number of classes
+    Returns:
+        The color map
+    """
+    '''
+    n = num_cls
+    palette = [0] * (n * 3)
+    for j in range(0, n):
+        lab = j
+        palette[j * 3 + 0] = 0
+        palette[j * 3 + 1] = 0
+        palette[j * 3 + 2] = 0
+        i = 0
+        while lab:
+            palette[j * 3 + 0] |= (((lab >> 0) & 1) << (7 - i))
+            palette[j * 3 + 1] |= (((lab >> 1) & 1) << (7 - i))
+            palette[j * 3 + 2] |= (((lab >> 2) & 1) << (7 - i))
+            i += 1
+            lab >>= 3
+    '''
+    n = num_cls
+    palette = [0] * (n * 3)
+    for j in range(0, n):
+        lab = j
+        palette[j * 3 + 2] = 0
+        palette[j * 3 + 1] = 0
+        palette[j * 3 + 0] = 0
+        i = 0
+        while lab:
+            palette[j * 3 + 0] |= (((lab >> 0) & 1) << (7 - i))
+            palette[j * 3 + 1] |= (((lab >> 1) & 1) << (7 - i))
+            palette[j * 3 + 2] |= (((lab >> 2) & 1) << (7 - i))
+            i += 1
+            lab >>= 3
+
+    return palette[3:]
 
 def get_masks(result, num_classes=8):
     cur_result = result
@@ -58,12 +102,14 @@ def get_semantic(result,num_classes=8):
     return encode
 
 def vis_seg(data, result, img_norm_cfg, score_thr, save_dir):
+    result=[result]
     img_tensor = data['img'][0]
     img_metas = data['img_metas'][0].data[0]
     imgs = tensor2imgs(img_tensor, **img_norm_cfg)
     assert len(imgs) == len(img_metas)
-    class_names = get_classes('CIHP')
-
+    class_names = get_classes('PAS')
+    palette = get_palette(len(class_names)+1)
+    
     for img, img_meta, cur_result in zip(imgs, img_metas, result):
         if cur_result[0] is None:
             continue
@@ -89,6 +135,8 @@ def vis_seg(data, result, img_norm_cfg, score_thr, save_dir):
         cate_label = cate_label[orders]
         cate_score = cate_score[orders]  # 从小到大排
         seg_show = img_show.copy()
+        seg_show=np.zeros_like(img_show)
+        seg_show 
         for idx in range(num_mask):
             idx = -(idx + 1)
             cur_mask = seg_label[idx, :, :]
@@ -96,20 +144,23 @@ def vis_seg(data, result, img_norm_cfg, score_thr, save_dir):
             cur_mask = (cur_mask > 0.5).astype(np.uint8)
             if cur_mask.sum() == 0:
                 continue
-            color_mask = np.random.randint(
-                0, 256, (1, 3), dtype=np.uint8)
-            cur_mask_bool = cur_mask.astype(np.bool)
-            seg_show[cur_mask_bool] = img_show[cur_mask_bool] * 0.3 + color_mask * 0.7
+
+            # color_mask = np.random.randint(
+            #     0, 256, (1, 3), dtype=np.uint8)
+
             cur_cate = cate_label[idx]
             cur_score = cate_score[idx]
-
-            label_text = class_names[cur_cate]
+            color_mask = palette[int(cur_cate*3):int(cur_cate*3+3)]
+            color_mask=np.array(color_mask)
+            cur_mask_bool = cur_mask.astype(np.bool)
+            seg_show[cur_mask_bool] = img_show[cur_mask_bool] * 0 + color_mask * 1
+            label_text = class_names[int(cur_cate)]
             # label_text += '|{:.02f}'.format(cur_score)
             # center
             center_y, center_x = ndimage.measurements.center_of_mass(cur_mask)
             vis_pos = (int(center_x), int(center_y))
-            cv2.putText(seg_show, label_text, vis_pos,
-                        cv2.FONT_HERSHEY_COMPLEX, 0.3, (255, 255, 255))  # green
+            # cv2.putText(seg_show, label_text, vis_pos,
+            #             cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 0))  
 
 
         
@@ -118,9 +169,9 @@ def vis_seg(data, result, img_norm_cfg, score_thr, save_dir):
             '''seg_show = PILImage.fromarray(seg_show)
             seg_show.save(os.path.join(save_dir,data_id))'''
             mmcv.imwrite(seg_show, os.path.join(save_dir,data_id))
-            print(cur_score)
-            pdb.set_trace()
-        
+            # print(cur_score)
+            # print(color_mask)
+            # pdb.set_trace()
 
 
 def single_gpu_test(model,
@@ -191,10 +242,10 @@ def multi_gpu_test(model, data_loader, args, cfg, tmpdir=None):
     for i, data in enumerate(data_loader):
         with torch.no_grad():
             pred_result = model(return_loss=False, rescale=True, **data)[0]
+
             key = pred_result[0]
             results_cache_add = cache + key + '.pklz'
             apr =pred_result[1]['INSTANCE']
-
             pred_result[1].pop('INSTANCE')
             #app
             app=pred_result[1]
@@ -202,7 +253,7 @@ def multi_gpu_test(model, data_loader, args, cfg, tmpdir=None):
             #apr
             instance_seg_masks,instance_cate_labels,instance_cate_scores = apr
             if instance_seg_masks is None:
-                continue
+                continue 
             results_apr_add = apr_output_dirs + key +'.pklz'
             pickle.dump(instance_seg_masks, gzip.open(results_apr_add, 'w'))
             for label,score in zip(instance_cate_labels, instance_cate_scores):
