@@ -22,6 +22,8 @@ import matplotlib.pyplot as plt
 import time
 import os
 import os.path as osp
+import scipy.io
+
 cihp_id2label={0: 'Background',
                 1: 'head',
                 2: 'torso',
@@ -34,6 +36,46 @@ train_label =['head','torso','left-u-arms','left-l-arms','left-u-legs','left-l-l
 detailpart2partlabel={'':'',
 
 }
+
+
+# Load annotations from .mat files creating a Python dictionary:
+def load_annotations(path):
+
+    # Get annotations from the file and relative objects:
+    annotations = scipy.io.loadmat(path)["anno"]
+
+    objects = annotations[0, 0]["objects"]
+
+    # List containing information of each object (to add to dictionary):
+    objects_list = []
+
+    # Go through the objects and extract info:
+    for obj_idx in range(objects.shape[1]):
+        obj = objects[0, obj_idx]
+
+        # Get classname and mask of the current object:
+        classname = obj["class"][0]
+        mask = obj["mask"]
+
+        # List containing information of each body part (to add to dictionary):
+        parts_list = []
+
+        parts = obj["parts"]
+
+        # Go through the part of the specific object and extract info:
+        for part_idx in range(parts.shape[1]):
+            part = parts[0, part_idx]
+            # Get part name and mask of the current body part:
+            part_name = part["part_name"][0]
+            part_mask = part["mask"]
+
+            # Add info to parts_list:
+            parts_list.append({"part_name": part_name, "mask": part_mask})
+
+        # Add info to objects_list:
+        objects_list.append({"class": classname, "mask": mask, "parts": parts_list})
+
+    return {"objects": objects_list}
 def collect_files(text_dir,Images_dir, Instance_dir):
     files = []
     suffix='jpg'
@@ -49,24 +91,25 @@ def collect_files(text_dir,Images_dir, Instance_dir):
 
 def collect_annotations(files, nproc=1):
     print('Loading annotation images')
-    if nproc > 1:
-        images = mmcv.track_parallel_progress(
-            load_img_info, files, nproc=nproc)
-    else:
-        images = mmcv.track_progress(load_img_info, files)
-   
+    # if nproc > 1:
+    #     images = mmcv.track_parallel_progress(
+    #         load_img_info, files, nproc=nproc)
+    # else:
+    #     images = mmcv.track_progress(load_img_info, files)
+    images=load_img_info(files[0])
     return images
 
 
 def load_img_info(files):
     Image_file, Instance_file= files
 
-    annotations = utils.load_annotations(Instance_file)
+    annotations = load_annotations(Instance_file)
     obj_cnt = 0
 
     # Show original image with its mask:
     for obj in annotations["objects"]:
         if obj["class"] == "person":
+            pdb.set_trace()
             img_list = {value:np.zeros_like(obj['mask']) for key,value in enumerate(train_label)}
             obj_cnt = obj_cnt + 1
             for part_id in detailpart2partlabel:

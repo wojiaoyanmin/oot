@@ -199,7 +199,7 @@ class SOLOHead(nn.Module):
         for conv in self.human_kernel_convs:
             feats_human_kernel = conv(feats_human_kernel)
         human_cate_pred = self.human_solo_cate(feats_human_cate)
-        human_kernel_pred = self.solo_kernel(feats_human_kernel)
+        human_kernel_pred = self.human_solo_kernel(feats_human_kernel)
         #human_kernel_pred = F.softmax(human_kernel_pred,dim=1)
         
         if eval:
