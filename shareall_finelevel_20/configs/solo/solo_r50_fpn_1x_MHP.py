@@ -8,8 +8,8 @@ model=dict(
         num_classes=59)#不算background  但是多了一类“human”
 )
 data = dict(
-    samples_per_gpu=2)
-optimizer = dict(type='SGD', lr=0.002, momentum=0.9, weight_decay=0.0001)
+    samples_per_gpu=3)
+optimizer = dict(type='SGD', lr=0.006, momentum=0.9, weight_decay=0.0001)
 total_epochs = 12
 lr_config = dict(
     policy='step',
