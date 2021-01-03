@@ -86,6 +86,7 @@ def collect_files(Images_dir, Instance_dir ):
         print('collect ',ii,' image successfully')
     assert len(files), f'No images found in {Images_dir}'
     print(f'Loaded {len(files)} images from {Images_dir}')
+    
     return files
 
 
@@ -208,9 +209,7 @@ def main():
 
 
     set_name = dict(
-        train='Instance_train.json',
-        val='Instance_val.json',
-        test='Instance_test.json'
+        val='Instance_val.json'
         )
 
     for split, json_name in set_name.items():

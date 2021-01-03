@@ -7,7 +7,10 @@ from ..builder import HEADS, build_loss,build_head
 import torch
 import numpy as np
 import pdb
-
+import matplotlib.pyplot as plt
+import cv2
+import os.path as osp
+import time
 
 @HEADS.register_module
 class MaskFeatHead(nn.Module):
@@ -114,4 +117,9 @@ class MaskFeatHead(nn.Module):
             feature_add_all_level += self.convs_all_levels[i](input_p)
 
         feature_pred = self.conv_pred(feature_add_all_level)
+        
+        # for i in range(feature_pred.shape[1]):
+        #     plt.imshow(feature_pred[0][i].cpu().numpy())
+        #     plt.savefig(osp.join('work_dirs/visualize',str(i)+'.png'))
+        #     time.sleep(0.5)
         return feature_pred
