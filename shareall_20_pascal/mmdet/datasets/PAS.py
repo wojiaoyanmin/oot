@@ -247,54 +247,21 @@ class PASDataset(CocoDataset):
             metrics.remove('cityscapes')
 
         # left metrics are all coco metric
-        data_root = './data/PAS/'
-        PREDICT_DIR = './apr'
-        INST_PART_GT_DIR = './data/PAS/val/Instance_part_val'
-        IOU_THRE = [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
-        #IOU_THRE = [0.5]
-        APR_CLASSES = ('Background','head','torso','u-arms','l-arms','u-legs','l-legs')
-        #dat_list = get_data(data_root, 'val')
-        
-        app_results={}
-        for pred in results:        
-            app_results[pred[0]] = pred[1]
-        apr_results={}
-        for pred in results:        
-            apr_results[pred[0]] = pred[2]
-
-
-        # threshold=[0.5, 0.6, 0.7, 0.8, 0.9, 0.1, 0.2, 0.3, 0.4 ]
-        # app_list=[]
-        # pcp_list=[]
-        # if len(metrics) > 0:
-        #     for threshold_single in threshold:
-        #         parsing_result = eval_seg_ap(app_results, dat_list, nb_class=len(self.CLASSES)+1, ovthresh_seg=threshold_single, From_pkl=True, Sparse=True)
-        #         eval_results.update(parsing_result)
-        #         app_list.append(parsing_result['AP_seg'])
-        #         pcp_list.append(parsing_result['PCP'])
-        #     print('app_list:',app_list)
-        #     print('pcp_list:',pcp_list)
-        #     app_vol = mean(app_list)
-        #     pcp_vol = mean(pcp_list)
-        #     print('app_vol, pcp_vol',app_vol,pcp_vol)
-        image_id_list = [x[:-4] for x in os.listdir(PREDICT_DIR) if x[-3:] == 'txt']
-        APr = np.zeros((len(APR_CLASSES) - 1, len(IOU_THRE)))
-
-        for ind in range(1, len(APR_CLASSES)):
-            APr[ind - 1, :] = compute_class_ap(apr_results, image_id_list, ind, IOU_THRE,INST_PART_GT_DIR,PREDICT_DIR, APR_CLASSES)
-        print("-----------------AP-----------------")
-        print(APr)
-        print("-------------------------------------")
-        mAP = np.nanmean(APr, axis=0)
-        print("-----------------mAP-----------------")
-        print(mAP)
-        
-        APrvol = np.nanmean(mAP)
-        print(np.nanmean(APrvol))
-        print("-------------------------------------")
-        eval_results.update({'APR':mAP, 'APrvol':APrvol})
+        if len(metrics) > 0:
+            # create CocoDataset with CityscapesDataset annotation
+            self_coco = CocoDataset(self.ann_file, self.pipeline.transforms,
+                                    None, self.data_root, self.img_prefix,
+                                    self.seg_prefix, self.proposal_file,
+                                    self.test_mode, self.filter_empty_gt)
+            # TODO: remove this in the future
+            # reload annotations of correct class
+            self_coco.CLASSES = self.CLASSES
+            self_coco.data_infos = self_coco.load_annotations(self.ann_file)
+            eval_results.update(
+                self_coco.evaluate(results, metrics, logger, outfile_prefix,
+                                   classwise, proposal_nums, iou_thrs))
+            
         return eval_results
-
 
     def get_confusion_matrix(self,gt_label, pred_label, class_num):
         """

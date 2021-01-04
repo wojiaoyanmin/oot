@@ -115,7 +115,6 @@ def eval_seg_ap(results_all, dat_list, nb_class=59, ovthresh_seg=0.5, Sparse=Fal
         for i in range(len(R['anno_adds'])):#pred picuture de suo suo you de det label
             mask_gt = np.array(Image.open(R['anno_adds'][i]))  
             if len(mask_gt.shape) == 3: mask_gt = mask_gt[:, :, 0]  # Make sure ann is a two dimensional np array.
-            
             seg_iou = cal_one_mean_iou(mask_pred.astype(np.uint8), mask_gt, nb_class)
             mean_seg_iou = np.nanmean(seg_iou)
             # print('mask_pred',np.unique(mask_pred))

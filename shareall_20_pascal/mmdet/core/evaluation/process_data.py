@@ -32,8 +32,8 @@ def get_data(data_root, set_):
     ann_root = data_root + set_ + '/parsing_annos/'  # '/annotations/'
 
     ann_dict = obtain_ann_dict(img_root, ann_root)
-    json_root=osp.join(data_root , "annotations" , "Instance_"+set_+".json")
-    #json_root = './data/CIHP/annotations/Instance_trybig.json'
+    #json_root=osp.join(data_root , "annotations" , "Instance_"+set_+".json")
+    json_root = './data/PAS/annotations/Instance_try.json'
     flist = []
     with open(json_root,encoding='utf8')as fp:
         json_data=json.load(fp)

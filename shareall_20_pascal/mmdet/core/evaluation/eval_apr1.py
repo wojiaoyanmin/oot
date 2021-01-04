@@ -242,12 +242,7 @@ def compute_class_ap(apr_results, image_id_list, class_id, iou_threshold,INST_PA
 
         # print('overlaps.shape',overlaps.shape)
         
-        fill= []
-        for i in range(len(iou_threshold)):
-            fill_in=[]
-            for j in range(n_gt_inst):
-                fill_in.append(0)
-            fill.append(fill_in)
+        
         max_overlap_ind = np.argmax(overlaps, axis=1)
         # l = len(overlaps[:,max_overlap_ind])
         for i in np.arange(len(max_overlap_ind)):
@@ -255,8 +250,7 @@ def compute_class_ap(apr_results, image_id_list, class_id, iou_threshold,INST_PA
             # print('max_iou :', max_iou)
             for k in range(iou_thre_num):
                 
-                if (max_iou > iou_threshold[k])&(fill[k][max_overlap_ind[i]]==0):
-                    fill[k][max_overlap_ind[i]]=1
+                if max_iou > iou_threshold[k]:
                     tp[k].append(1)
                     fp[k].append(0)
                 else:

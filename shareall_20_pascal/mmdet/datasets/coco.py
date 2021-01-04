@@ -401,7 +401,7 @@ class CocoDataset(CustomDataset):
                  iou_thrs=None,
                  metric_items=None):
         """Evaluation in COCO protocol.
-
+        
         Args:
             results (list[list | tuple]): Testing results of the dataset.
             metric (str | list[str]): Metrics to be evaluated. Options are
@@ -430,7 +430,6 @@ class CocoDataset(CustomDataset):
         Returns:
             dict[str, float]: COCO style evaluation metric.
         """
-
         metrics = metric if isinstance(metric, list) else [metric]
         allowed_metrics = ['bbox', 'segm', 'proposal', 'proposal_fast']
         for metric in metrics:
@@ -484,6 +483,7 @@ class CocoDataset(CustomDataset):
             cocoEval.params.maxDets = list(proposal_nums)
             cocoEval.params.iouThrs = iou_thrs
             # mapping of cocoEval.stats
+            
             coco_metric_names = {
                 'mAP': 0,
                 'mAP_50': 1,
@@ -491,8 +491,8 @@ class CocoDataset(CustomDataset):
                 'mAP_s': 3,
                 'mAP_m': 4,
                 'mAP_l': 5,
-                'AR@100': 6,
-                'AR@300': 7,
+                'AR@1000': 6,
+                'AR@1000': 7,
                 'AR@1000': 8,
                 'AR_s@1000': 9,
                 'AR_m@1000': 10,
@@ -561,7 +561,7 @@ class CocoDataset(CustomDataset):
                 if metric_items is None:
                     metric_items = [
                         'mAP', 'mAP_50', 'mAP_75', 'mAP_s', 'mAP_m', 'mAP_l',
-                        'AR@100', 'AR@300', 'AR@1000', 'AR_s@1000', 'AR_m@1000', 'AR_l@1000'
+                        'AR@1000', 'AR@1000', 'AR@1000', 'AR_s@1000', 'AR_m@1000', 'AR_l@1000'
                     ]
                 for metric_item in metric_items:
                     key = f'{metric}_{metric_item}'

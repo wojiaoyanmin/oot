@@ -102,7 +102,7 @@ def get_semantic(result,num_classes=8):
     return encode
 
 def vis_seg(data, result, img_norm_cfg, score_thr, save_dir):
-    result=[result]
+    retult=[result]
     img_tensor = data['img'][0]
     img_metas = data['img_metas'][0].data[0]
     imgs = tensor2imgs(img_tensor, **img_norm_cfg)
@@ -145,22 +145,22 @@ def vis_seg(data, result, img_norm_cfg, score_thr, save_dir):
             if cur_mask.sum() == 0:
                 continue
 
-            # color_mask = np.random.randint(
-            #     0, 256, (1, 3), dtype=np.uint8)
+            color_mask = np.random.randint(
+                0, 256, (1, 3), dtype=np.uint8)
 
             cur_cate = cate_label[idx]
             cur_score = cate_score[idx]
-            color_mask = palette[int(cur_cate*3):int(cur_cate*3+3)]
-            color_mask=np.array(color_mask)
+            # color_mask = palette[int(cur_cate*3):int(cur_cate*3+3)]
+            # color_mask=np.array(color_mask)
             cur_mask_bool = cur_mask.astype(np.bool)
-            seg_show[cur_mask_bool] = img_show[cur_mask_bool] * 0 + color_mask * 1
+            seg_show[cur_mask_bool] = img_show[cur_mask_bool] * 0.5 + color_mask * 0.5
             label_text = class_names[int(cur_cate)]
             # label_text += '|{:.02f}'.format(cur_score)
             # center
             center_y, center_x = ndimage.measurements.center_of_mass(cur_mask)
             vis_pos = (int(center_x), int(center_y))
-            # cv2.putText(seg_show, label_text, vis_pos,
-            #             cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 0))  
+            cv2.putText(seg_show, label_text, vis_pos,
+                        cv2.FONT_HERSHEY_COMPLEX, 0.5, (0, 0, 0))  
 
 
         
@@ -169,9 +169,10 @@ def vis_seg(data, result, img_norm_cfg, score_thr, save_dir):
             '''seg_show = PILImage.fromarray(seg_show)
             seg_show.save(os.path.join(save_dir,data_id))'''
             mmcv.imwrite(seg_show, os.path.join(save_dir,data_id))
-            # print(cur_score)
+            print(cur_score)
+            pdb.set_trace()
             # print(color_mask)
-            # pdb.set_trace()
+            
 
 
 def single_gpu_test(model,
@@ -248,20 +249,21 @@ def multi_gpu_test(model, data_loader, args, cfg, tmpdir=None):
             apr =pred_result[1]['INSTANCE']
             pred_result[1].pop('INSTANCE')
             #app
-            app=pred_result[1]
-            pickle.dump(app, gzip.open(results_cache_add, 'w'))
-            #apr
-            instance_seg_masks,instance_cate_labels,instance_cate_scores = apr
-            if instance_seg_masks is None:
-                continue 
-            results_apr_add = apr_output_dirs + key +'.pklz'
-            pickle.dump(instance_seg_masks, gzip.open(results_apr_add, 'w'))
-            for label,score in zip(instance_cate_labels, instance_cate_scores):
-                with open(os.path.join(apr_output_dirs, '%s.txt' % key), 'a') as f:
-                    f.write('%d %f\n' % (label+1, score))
-            # encoder_ins = get_masks(apr, num_classes=num_classes)
-            # instance_results.append(encoder_ins)        
-            results.append([key,results_cache_add,results_apr_add])
+            # app=pred_result[1]
+            # pickle.dump(app, gzip.open(results_cache_add, 'w'))
+            # #apr
+            # instance_seg_masks,instance_cate_labels,instance_cate_scores = apr
+            # if instance_seg_masks is None:
+            #     continue 
+            # results_apr_add = apr_output_dirs + key +'.pklz'
+            # pickle.dump(instance_seg_masks, gzip.open(results_apr_add, 'w'))
+            # for label,score in zip(instance_cate_labels, instance_cate_scores):
+            #     with open(os.path.join(apr_output_dirs, '%s.txt' % key), 'a') as f:
+            #         f.write('%d %f\n' % (label+1, score))
+            encoder_ins = get_masks(apr, num_classes=num_classes)
+            # instance_results.append(encoder_ins)       
+            results.append(encoder_ins)
+
         if args.show:
             vis_seg(data, apr, cfg.img_norm_cfg,
                     score_thr=args.show_score_thr, save_dir=args.show_dir)

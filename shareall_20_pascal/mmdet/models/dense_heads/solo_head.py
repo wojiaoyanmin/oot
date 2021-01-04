@@ -780,6 +780,13 @@ class SOLOHead(nn.Module):
         human_cate_scores = human_cate_scores[human_keep]
         human_cate_labels = human_cate_labels[human_keep]
 
+        human_sort_inds = torch.argsort(human_cate_scores, descending=True)
+        human_seg_masks = human_seg_masks[human_sort_inds, :, :]
+        human_seg_preds = human_seg_preds[human_sort_inds, :, :]
+        human_cate_scores = human_cate_scores[human_sort_inds]
+        human_cate_labels = human_cate_labels[human_sort_inds]
+
+
         human_seg_preds = F.interpolate(human_seg_preds.unsqueeze(0),
                                   size=upsampled_size_out,
                                   mode='bilinear')[:, :, :h, :w]
@@ -787,7 +794,10 @@ class SOLOHead(nn.Module):
                                   size=ori_shape[:2],
                                   mode='bilinear').squeeze(0)
         human_seg_masks=human_seg_preds>cfg.mask_thr
-
+        # for i in range(human_seg_masks.shape[0]):
+        #     plt.imshow(human_seg_masks[i].cpu().numpy())
+        #     print(human_cate_scores[i])
+        #     plt.show()
         #small to large
         # sem_pred=torch.zeros([self.num_classes+1, human_seg_masks.shape[-2] , seg_masks.shape[-1]], dtype=torch.float, device=human_seg_masks.device)
         # for cate_score,cate_label,seg_mask in zip(cate_scores,cate_labels,seg_masks):
@@ -807,7 +817,7 @@ class SOLOHead(nn.Module):
         keep_parts = (ratio>cfg.assign_parts_th)
 
         
-
+        inds = torch.zeros([seg_masks.shape[-2] , seg_masks.shape[-1]], dtype=torch.bool, device=seg_masks.device)
         for i in range(num_humans):
             # plt.imshow(human_seg_masks[i].cpu().numpy())
             # print(img_name)
@@ -825,7 +835,7 @@ class SOLOHead(nn.Module):
             #     print(part_label[i])
             #     print(part_score[i])
             #     plt.show()
-            cur_score = final_mask = torch.zeros([seg_masks.shape[-2] , seg_masks.shape[-1]], dtype=torch.float, device=seg_masks.device)
+            cur_score = torch.zeros([seg_masks.shape[-2] , seg_masks.shape[-1]], dtype=torch.float, device=seg_masks.device)
             final_mask = torch.zeros([seg_masks.shape[-2] , seg_masks.shape[-1]], dtype=torch.uint8, device=seg_masks.device)
             for j in range(keep.sum()):
                 final_mask[part_mask[j]]=int(part_label[j])+1
@@ -850,9 +860,20 @@ class SOLOHead(nn.Module):
                 if j ==0:
                     continue
                 else:
-                    instance_seg_masks.append((final_mask==j).unsqueeze(0))
-                    instance_cate_labels.append(int(j-1))
-                    instance_cate_scores.append(cur_score)
+                    # cur_mask=(final_mask==j)
+                    # cur_mask=(torch.logical_not(inds)&cur_mask).unsqueeze(0)
+                    # inds=inds|cur_mask
+                    # if cur_mask.sum()<=0:
+                    #     pdb.set_trace()
+                    #     continue
+                    # else:
+                    cur=(final_mask==j)
+                    if cur.sum()<=0:
+                        continue
+                    else:
+                        instance_seg_masks.append(cur.unsqueeze(0))
+                        instance_cate_labels.append(int(j-1))
+                        instance_cate_scores.append(cur_score)
             # plt.imshow(final_mask.cpu().numpy())
             # print('after')
             # plt.show()
@@ -866,7 +887,12 @@ class SOLOHead(nn.Module):
         if len(instance_seg_masks)==0:
             return (img_name,None_results) , None
 
+        
         instance_seg_masks = torch.cat(instance_seg_masks)
+        # for i in range(instance_seg_masks.shape[0]):
+        #     plt.imshow(instance_seg_masks[i].cpu().numpy())
+        #     plt.show()
+        # pdb.set_trace()
         instance_cate_labels = torch.Tensor(instance_cate_labels)
         instance_cate_scores = torch.Tensor(instance_cate_scores)
 
