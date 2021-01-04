@@ -7,7 +7,8 @@ import mmcv
 import numpy as np
 from mmcv.utils import print_log
 from pycocotools.coco import COCO
-from pycocotools.cocoeval import COCOeval
+# from pycocotools.cocoeval import COCOeval
+from .cocoeval import COCOeval
 from terminaltables import AsciiTable
 import pdb
 from mmdet.core import eval_recalls
@@ -438,8 +439,7 @@ class CocoDataset(CustomDataset):
         if iou_thrs is None:
             '''iou_thrs = np.linspace(
                 .5, 0.95, int(np.round((0.95 - .5) / .05)) + 1, endpoint=True)'''
-            iou_thrs = np.linspace(
-                .1, 0.9, int(np.round((0.9 - .1) / .1)) + 1, endpoint=True)
+            iou_thrs = np.array([0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9])
         if metric_items is not None:
             if not isinstance(metric_items, list):
                 metric_items = [metric_items]
