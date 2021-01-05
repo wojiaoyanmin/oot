@@ -795,12 +795,12 @@ class SOLOHead(nn.Module):
         keep_parts = (ratio>cfg.assign_parts_th)
 
 
-        # for i in range(human_seg_preds.shape[0]):
-        #     plt.imshow(human_seg_preds[i].cpu().numpy())
+        # for i in range(human_seg_masks.shape[0]):
+        #     plt.imshow(human_seg_masks[i].cpu().numpy())
         #     plt.savefig(osp.join('work_dirs/human_visualize',str(i)+'.png'))
             
-        # for i in range(seg_preds.shape[0]):
-        #     plt.imshow(seg_preds[i].cpu().numpy())
+        # for i in range(seg_masks.shape[0]):
+        #     plt.imshow(seg_masks[i].cpu().numpy())
         #     plt.savefig(osp.join('work_dirs/part_visualize',str(i)+'.png'))
             
         
