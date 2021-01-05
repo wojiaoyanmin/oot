@@ -827,8 +827,16 @@ class SOLOHead(nn.Module):
             for j in range(keep.sum()):
                 final_mask[part_mask[j]]=int(part_label[j])+1
                 cur_score[part_mask[j]]=part_score[j]
+
             
+            # plt.imshow(final_mask.cpu().numpy())
+            # plt.savefig(osp.join('work_dirs/final_before',str(i)+'.png'))
+
             final_mask = final_mask * human_seg_masks[i]
+            
+            # plt.imshow(final_mask.cpu().numpy())
+            # plt.savefig(osp.join('work_dirs/final_after',str(i)+'.png'))
+                
             cur_score = cur_score * human_seg_masks[i]
             cur_score = torch.sum(cur_score)/(cur_score!=0).sum()
             cur_score = cur_score * human_cate_scores [i]

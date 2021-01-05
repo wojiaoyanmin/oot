@@ -51,7 +51,7 @@ data = dict(
     test=dict(
         type=dataset_type,
         ann_file=data_root +
-                          'annotations/Instance_val.json',
+                          'annotations/Instance_visualize.json',
         img_prefix=data_root + 'val/',
         pipeline=test_pipeline))
 evaluation = dict(metric=['segm'])
