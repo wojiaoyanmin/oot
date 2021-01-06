@@ -19,4 +19,4 @@ lr_config = dict(
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=0.01,
-    step=[45,55]
+    step=[45,55])
