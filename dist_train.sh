@@ -14,13 +14,16 @@ cd share_feature_20_pascal
 echo "share_feature_20_pascal50-train"
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python -m torch.distributed.launch --nproc_per_node=1 --master_port=$PORT \
-    ./tools/train.py configs/solo/solo_r50_fpn_1x_dcn_PAS.py --resume-from work_dirs/solo_r50_fpn_1x_dcn_PAS/epoch_34.pth --launcher pytorch
+    ./tools/train.py configs/solo/solo_r50_fpn_1x_dcn_PAS.py --resume-from work_dirs/solo_r50_fpn_1x_dcn_PAS/latest.pth --launcher pytorch
 sleep 60s
 echo "share_feature_20_pascal101"
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python -m torch.distributed.launch --nproc_per_node=1 --master_port=$PORT \
-    ./tools/train.py configs/solo/solo_r101_fpn_1x_dcn_PAS.py --resume-from work_dirs/solo_r101_fpn_1x_dcn_PAS/latest.pth --launcher pytorch
+    ./tools/train.py configs/solo/solo_r101_fpn_1x_dcn_PAS.py --resume-from work_dirs/solo_r101_fpn_1x_dcn_PAS/latest.pth --no-validate --launcher pytorch
 
 sleep 60s
-
+echo "share_feature_20_pretrain"
+PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
+python -m torch.distributed.launch --nproc_per_node=1 --master_port=$PORT \
+    ./tools/train.py configs/solo/solo_r50_fpn_1x_dcn_prePAS.py --launcher pytorch
 
