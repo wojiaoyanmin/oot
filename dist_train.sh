@@ -19,9 +19,9 @@ cd share_feature_20_pascal
 
 # sleep 60s
 echo "share_feature_20_pretrain"
-# PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
-# python -m torch.distributed.launch --nproc_per_node=1 --master_port=$PORT \
-#     ./tools/train.py configs/solo/solo_r50_fpn_1x_dcn_prePAS.py --launcher pytorch
+PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
+python -m torch.distributed.launch --nproc_per_node=1 --master_port=$PORT \
+    ./tools/train.py configs/solo/solo_r50_fpn_1x_dcn_prePAS.py --launcher pytorch
 
 echo "share_feature_20_3X_TEST"
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
