@@ -11,10 +11,10 @@ data = dict(
     samples_per_gpu=3)
 optimizer = dict(type='SGD', lr=0.006, momentum=0.9, weight_decay=0.0001)
 #optimizer_config = dict(grad_clip=dict(max_norm=35,norm_type=2))
-total_epochs = 36
+total_epochs = 72
 lr_config = dict(
     policy='step',
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=0.01,
-    step=[27,33])
+    step=[54,65])

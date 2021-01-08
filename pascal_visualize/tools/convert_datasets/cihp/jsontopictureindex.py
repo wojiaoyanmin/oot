@@ -54,7 +54,7 @@ def get_palette(num_cls):
 
 
 def jsontopicture(json_file, dataset_dir, out_dir):
-    class_names = get_classes('MHP')
+    class_names = get_classes('PAS')
     # pylab.rcParams['figure.figsize'] = (8.0, 10.0)
 
     # json_file='../../datasets/cityscapes/annotations/instancesonly_filtered_gtFine_val.json'
@@ -62,7 +62,7 @@ def jsontopicture(json_file, dataset_dir, out_dir):
     coco = COCO(json_file)
     # catIds=coco.getCatIds(catNms=['person'])#catIds=1表示人这一类
     imgIds = coco.getImgIds()  # 图片id，许多值
-    palette = get_palette(20)
+    palette = get_palette(100)
     for i in range(len(imgIds)):
         img = coco.loadImgs(imgIds[i])[0]
 
@@ -73,13 +73,20 @@ def jsontopicture(json_file, dataset_dir, out_dir):
 
         annIds = coco.getAnnIds(imgIds=img['id'], iscrowd=None)
         anns = coco.loadAnns(annIds)
+        color_mask_pre_list=[]
+        
+        cur_instance_list=[]
         for j in range(len(anns)):
             cur_cate = anns[j]['category_id']
+            cur_instance_list.append( anns[j]['instance_id'])
+            color_mask_pre_list.append( np.random.randint(
+                0, 256, (1, 3), dtype=np.uint8))
+        for j in range(len(anns)):
             cur_mask = mask_util.decode(anns[j]['segmentation'])
-            # color_mask = palette[int(cur_cate*3):int(cur_cate*3+3)]
+            cur_cate_instance=anns[j]['instance_id']
+            #color_mask = palette[int(cur_instance*3):int(cur_instance*3+3)]
             # color_mask=np.array(color_mask)
-            color_mask = np.random.randint(
-                0, 256, (1, 3), dtype=np.uint8)
+            color_mask = color_mask_pre_list[cur_cate_instance]
             label_text = class_names[int(cur_cate)]
             cur_mask_bool = cur_mask.astype(np.bool)
 
@@ -102,10 +109,10 @@ def jsontopicture(json_file, dataset_dir, out_dir):
 
 
 def main():
-    json_file='data/CIHP/annotations/Instance_val.json'
+    json_file='data/PAS/annotations/Instance_val.json'
     #json_file = 'data/CIHP/annotations/Instance_val.json'
-    dataset_dir = 'data/CIHP/val/'
-    out_dir = 'work_dirs/gtvis/'
+    dataset_dir = 'data/PAS/val/'
+    out_dir = 'work_dirs/gtvis_pascal/'
     mmcv.mkdir_or_exist(out_dir)
     jsontopicture(json_file, dataset_dir, out_dir)
 

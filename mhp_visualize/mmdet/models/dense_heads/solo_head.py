@@ -662,6 +662,12 @@ class SOLOHead(nn.Module):
         seg_preds = torch.matmul(kernel_preds,ins_preds).reshape(I,H,W).sigmoid()
 
         # mask.
+        seg_preds = F.interpolate(seg_preds.float().unsqueeze(0),
+                                  size=upsampled_size_out,
+                                  mode='bilinear')[:, :, :h, :w]
+        seg_preds = F.interpolate(seg_preds,
+                                  size=ori_shape[:2],
+                                  mode='bilinear').squeeze(0)
         seg_masks = seg_preds > cfg.mask_thr
         sum_masks = seg_masks.sum((1, 2)).float()
 
@@ -772,9 +778,13 @@ class SOLOHead(nn.Module):
         human_seg_masks = human_seg_masks[human_keep,...]
         human_cate_scores = human_cate_scores[human_keep]
         human_cate_labels = human_cate_labels[human_keep]
-
-
-        human_seg_masks=human_seg_masks>cfg.mask_thr
+        human_seg_preds = F.interpolate(human_seg_preds.float().unsqueeze(0),
+                                  size=upsampled_size_out,
+                                  mode='bilinear')[:, :, :h, :w]
+        human_seg_preds = F.interpolate(human_seg_preds,
+                                  size=ori_shape[:2],
+                                  mode='bilinear').squeeze(0)
+        human_seg_masks=human_seg_preds>cfg.mask_thr
 
         #small to large
         # sem_pred=torch.zeros([self.num_classes+1, human_seg_masks.shape[-2] , seg_masks.shape[-1]], dtype=torch.float, device=human_seg_masks.device)
@@ -848,13 +858,6 @@ class SOLOHead(nn.Module):
             if final_mask.sum()==0:
                 continue
             
-            final_mask = F.interpolate(final_mask.float().unsqueeze(0).unsqueeze(0),
-                                  size=upsampled_size_out,
-                                  mode='nearest')[:, :, :h, :w]
-            final_mask = F.interpolate(final_mask,
-                                  size=ori_shape[:2],
-                                  mode='nearest').squeeze(0).squeeze(0)
-            
             for j in torch.unique(final_mask):
                 if j ==0:
                     continue
@@ -865,6 +868,9 @@ class SOLOHead(nn.Module):
             # plt.imshow(final_mask.cpu().numpy())
             # print('after')
             # plt.show()
+            # instance_seg_masks.append((final_mask>0).unsqueeze(0))
+            # instance_cate_labels.append(int(1))
+            # instance_cate_scores.append(cur_score)
             ys, xs = np.where(final_mask.cpu().numpy() > 0)
             x1, y1, x2, y2 = xs.min(), ys.min(), xs.max(), ys.max()
             det=(x1, y1, x2, y2, cur_score.cpu().numpy())

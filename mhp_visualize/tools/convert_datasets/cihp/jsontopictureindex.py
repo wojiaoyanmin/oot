@@ -62,7 +62,8 @@ def jsontopicture(json_file, dataset_dir, out_dir):
     coco = COCO(json_file)
     # catIds=coco.getCatIds(catNms=['person'])#catIds=1表示人这一类
     imgIds = coco.getImgIds()  # 图片id，许多值
-    palette = get_palette(20)
+    palette = get_palette(100)
+    aa=0
     for i in range(len(imgIds)):
         img = coco.loadImgs(imgIds[i])[0]
 
@@ -75,8 +76,10 @@ def jsontopicture(json_file, dataset_dir, out_dir):
         anns = coco.loadAnns(annIds)
         for j in range(len(anns)):
             cur_cate = anns[j]['category_id']
+            #cur_instance = anns[j]['instance_id']
+
             cur_mask = mask_util.decode(anns[j]['segmentation'])
-            # color_mask = palette[int(cur_cate*3):int(cur_cate*3+3)]
+            # color_mask = palette[int(cur_instance*3):int(cur_instance*3+3)]
             # color_mask=np.array(color_mask)
             color_mask = np.random.randint(
                 0, 256, (1, 3), dtype=np.uint8)
@@ -95,16 +98,17 @@ def jsontopicture(json_file, dataset_dir, out_dir):
             # 创建目录操作函数
             os.makedirs(path)
         cv2.imwrite(os.path.join(path, '{}'.format(subfile[1])),seg_show)
+        aa=aa+1
         #plt.savefig(os.path.join(path, '{}'.format(subfile[1])))
         time.sleep(0.5)
-        print("done")
+        print(aa)
         # plt.show()#显示图像
 
 
 def main():
-    json_file='data/CIHP/annotations/Instance_val.json'
+    json_file='data/MHP/annotations/Instance_trybig.json'
     #json_file = 'data/CIHP/annotations/Instance_val.json'
-    dataset_dir = 'data/CIHP/val/'
+    dataset_dir = 'data/MHP/val/'
     out_dir = 'work_dirs/gtvis/'
     mmcv.mkdir_or_exist(out_dir)
     jsontopicture(json_file, dataset_dir, out_dir)
