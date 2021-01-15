@@ -8,12 +8,12 @@ model=dict(
         num_classes=6)#不算background  但是多了一类“human”
 )
 data = dict(
-    samples_per_gpu=2)
-optimizer = dict(type='SGD', lr=0.002, momentum=0.9, weight_decay=0.0001)
-total_epochs = 60
+    samples_per_gpu=3)
+optimizer = dict(type='SGD', lr=0.006, momentum=0.9, weight_decay=0.0001)
+total_epochs = 20
 lr_config = dict(
     policy='step',
     warmup='linear',
     warmup_iters=500,
     warmup_ratio=0.01,
-    step=[45,55])
+    step=[15,18])
