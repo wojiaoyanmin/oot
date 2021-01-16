@@ -856,31 +856,30 @@ class SOLOHead(nn.Module):
             if final_mask.sum()==0:
                 continue
             
+            for j in torch.unique(final_mask):
+                if j ==0:
+                    continue
+                else:
+                    cur=(final_mask==j)
+                    if cur.sum()<cfg.mix_pixels:
+                        final_mask[cur.bool()]=0
             
-            
-            # for j in torch.unique(final_mask):
-            #     if j ==0:
-            #         continue
-            #     else:
-            #         # cur_mask=(final_mask==j)
-            #         # cur_mask=(torch.logical_not(inds)&cur_mask).unsqueeze(0)
-            #         # inds=inds|cur_mask
-            #         # if cur_mask.sum()<=0:
-            #         #     pdb.set_trace()
-            #         #     continue
-            #         # else:
-            #         cur=(final_mask==j)
-            #         if cur.sum()<cfg.mix_pixels:
-            #             continue
-            #         else:
-            #             instance_seg_masks.append(cur.unsqueeze(0))
-            #             instance_cate_labels.append(int(j-1))
-            #             instance_cur_score=cur_score_init*cur
-            #             instance_cur_score = torch.sum(instance_cur_score)/(instance_cur_score!=0).sum()*human_cate_scores [i]
-            #             instance_cate_scores.append(instance_cur_score)
-            instance_seg_masks.append((final_mask>0).unsqueeze(0))
-            instance_cate_labels.append(int(1))
-            instance_cate_scores.append(cur_score)
+            for j in torch.unique(final_mask):
+                if j ==0:
+                    continue
+                else:
+                    cur=(final_mask==j)
+                    if cur.sum()<cfg.mix_pixels:
+                        continue
+                    else:
+                        instance_seg_masks.append(cur.unsqueeze(0))
+                        instance_cate_labels.append(int(j-1))
+                        instance_cur_score=cur_score_init*cur
+                        instance_cur_score = torch.sum(instance_cur_score)/(instance_cur_score!=0).sum()*human_cate_scores [i]
+                        instance_cate_scores.append(instance_cur_score)
+            # instance_seg_masks.append((final_mask>0).unsqueeze(0))
+            # instance_cate_labels.append(int(1))
+            # instance_cate_scores.append(cur_score)
             
             # plt.imshow(final_mask.cpu().numpy())
             # print('after')

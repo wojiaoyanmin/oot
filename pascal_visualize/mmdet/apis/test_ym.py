@@ -145,14 +145,14 @@ def vis_seg(data, result, img_norm_cfg, score_thr, save_dir):
             if cur_mask.sum() == 0:
                 continue
 
-            color_mask = np.random.randint(
-                0, 256, (1, 3), dtype=np.uint8)
+            # color_mask = np.random.randint(
+            #     0, 256, (1, 3), dtype=np.uint8)
 
             cur_cate = cate_label[idx]
             cur_score = cate_score[idx]
             
-            # color_mask = palette[int(cur_cate*3):int(cur_cate*3+3)]
-            # color_mask=np.array(color_mask)
+            color_mask = palette[int(cur_cate*3):int(cur_cate*3+3)]
+            color_mask=np.array(color_mask)
             cur_mask_bool = cur_mask.astype(np.bool)
             seg_show[cur_mask_bool] = img_show[cur_mask_bool] * 0 + color_mask * 1
             label_text = class_names[int(cur_cate)]

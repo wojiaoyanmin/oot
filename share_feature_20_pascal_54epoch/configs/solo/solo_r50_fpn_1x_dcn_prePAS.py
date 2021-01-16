@@ -10,8 +10,7 @@ model=dict(
 )
 load_from = 'work_dirs/sharefeature_20_3x_dcn/epoch_36.pth'
 data = dict(
-    samples_per_gpu=2)
-checkpoint_config = dict(interval=2)
+    samples_per_gpu=3)
 optimizer = dict(type='SGD', lr=0.006, momentum=0.9, weight_decay=0.0001)
 total_epochs = 18
 lr_config = dict(
