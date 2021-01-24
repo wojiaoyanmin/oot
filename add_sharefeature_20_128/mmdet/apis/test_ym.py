@@ -62,7 +62,7 @@ def vis_seg(data, result, img_norm_cfg, score_thr, save_dir):
     img_metas = data['img_metas'][0].data[0]
     imgs = tensor2imgs(img_tensor, **img_norm_cfg)
     assert len(imgs) == len(img_metas)
-    class_names = get_classes('MHP')
+    class_names = get_classes('CIHP')
 
     for img, img_meta, cur_result in zip(imgs, img_metas, result):
         if cur_result[0] is None:
