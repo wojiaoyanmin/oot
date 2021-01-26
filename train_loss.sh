@@ -7,7 +7,7 @@ cd add_sharefeature_20_loss2
 echo "add_sharefeature_20_loss2"
 PYTHONPATH="$(dirname $0)/..":$PYTHONPATH \
 python -m torch.distributed.launch --nproc_per_node=2 --master_port=$PORT \
-    ./tools/train.py configs/solo/solo_r50_fpn_1x_MHP.py --no-validate --launcher pytorch
+    ./tools/train.py configs/solo/solo_r50_fpn_1x_MHP.py --resume-from work_dirs/solo_r50_fpn_1x_MHP/latest.pth --no-validate --launcher pytorch
 sleep 60s
 
 echo "test"
