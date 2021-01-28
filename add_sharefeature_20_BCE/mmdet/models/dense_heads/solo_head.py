@@ -316,15 +316,17 @@ class SOLOHead(nn.Module):
         flatten_ins_ind_labels = torch.cat(ins_ind_labels)
 
         num_ins = flatten_ins_ind_labels.sum()
-
+        
         # dice loss
         loss_ins = []
         for input, target in zip(ins_pred_list, ins_labels):
             if input is None:
                 continue
-            input = torch.sigmoid(input)
+            # input = torch.sigmoid(input)
+            
             loss_ins.append(self.loss_ins(input, target).unsqueeze(0))
         loss_ins = torch.cat(loss_ins).mean()
+
         # cate
 
         cate_labels = [
@@ -379,8 +381,10 @@ class SOLOHead(nn.Module):
                        for human_ins_ind_label_img in human_ins_ind_label])
         human_num_ins = human_ins_ind_labels.sum()
         # dice loss
-        human_mask_pred = torch.sigmoid(human_mask_pred)
+        # human_mask_pred = torch.sigmoid(human_mask_pred)
+        
         human_loss_ins = self.human_loss_ins(human_mask_pred, human_ins_labels)
+
         # for i in range(human_ins_labels.shape[0]):
         #     plt.imshow(human_ins_labels[i].cpu().numpy())
         #     plt.show()

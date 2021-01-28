@@ -322,10 +322,10 @@ class SOLOHead(nn.Module):
         for input, target in zip(ins_pred_list, ins_labels):
             if input is None:
                 continue
-            input = torch.sigmoid(input)
+            # input = torch.sigmoid(input)
             target = torch.abs(target-1).flatten()
-            input = input.flatten()
-            loss_ins.append(self.loss_ins(input, target).unsqueeze(0))
+            input = input.flatten().unsqueeze(-1)
+            loss_ins.append(self.loss_ins(input, target, avg_factor=(target==0).sum()+1).unsqueeze(0))
         loss_ins = torch.cat(loss_ins).mean()
         # cate
 
@@ -345,6 +345,7 @@ class SOLOHead(nn.Module):
         weight=torch.Tensor([0.9781,0.9557,1.0731,1.0411,0.9562,0.9897,\
             0.963,1.0086,0.9588,0.9588,1.0607,1.0537,0.9556,0.9739,0.9735,\
             1.0328,1.0328,1.0184,1.0186]).expand(flatten_cate_preds.shape).to(flatten_cate_preds.device)'''
+        
         loss_cate = self.loss_cate(flatten_cate_preds, flatten_cate_labels, avg_factor=num_ins + 1)
 
         #!!!!!!!!!human
@@ -381,10 +382,10 @@ class SOLOHead(nn.Module):
                        for human_ins_ind_label_img in human_ins_ind_label])
         human_num_ins = human_ins_ind_labels.sum()
         # dice loss
-        human_mask_pred = torch.sigmoid(human_mask_pred)
+        # human_mask_pred = torch.sigmoid(human_mask_pred)
         human_ins_labels = torch.abs(human_ins_labels-1).flatten()
-        human_mask_pred = human_mask_pred.flatten()
-        human_loss_ins = self.human_loss_ins(human_mask_pred, human_ins_labels)
+        human_mask_pred = human_mask_pred.flatten().unsqueeze(-1)
+        human_loss_ins = self.human_loss_ins(human_mask_pred, human_ins_labels, avg_factor=(human_ins_labels==0).sum()+1)
         # for i in range(human_ins_labels.shape[0]):
         #     plt.imshow(human_ins_labels[i].cpu().numpy())
         #     plt.show()
@@ -480,7 +481,7 @@ class SOLOHead(nn.Module):
                 for j in range(left, right + 1):
                     label = int(i * self.num_human_grids + j)
 
-                    cur_ins_label = torch.zeros([mask_feat_size[0], mask_feat_size[1]], dtype=torch.uint8,
+                    cur_ins_label = torch.zeros([mask_feat_size[0], mask_feat_size[1]], dtype=torch.int64,
                                                 device=device)
                     cur_ins_label[:seg_mask.shape[0], :seg_mask.shape[1]] = seg_mask
                     ins_label.append(cur_ins_label)
@@ -522,7 +523,7 @@ class SOLOHead(nn.Module):
             ins_ind_label = torch.zeros([num_grid ** 2], dtype=torch.bool, device=device)
 
             if num_ins == 0:
-                ins_label = torch.zeros([0, mask_feat_size[0], mask_feat_size[1]], dtype=torch.uint8, device=device)
+                ins_label = torch.zeros([0, mask_feat_size[0], mask_feat_size[1]], dtype=torch.int64, device=device)
                 ins_label_list.append(ins_label)
                 cate_label_list.append(cate_label)
                 ins_ind_label_list.append(ins_ind_label)
@@ -563,7 +564,7 @@ class SOLOHead(nn.Module):
                     for j in range(left, right+1):
                         label = int(i * num_grid + j)
 
-                        cur_ins_label = torch.zeros([mask_feat_size[0], mask_feat_size[1]], dtype=torch.uint8,
+                        cur_ins_label = torch.zeros([mask_feat_size[0], mask_feat_size[1]], dtype=torch.int64,
                                                     device=device)
                         cur_ins_label[:seg_mask.shape[0], :seg_mask.shape[1]] = seg_mask
                         ins_label.append(cur_ins_label)
