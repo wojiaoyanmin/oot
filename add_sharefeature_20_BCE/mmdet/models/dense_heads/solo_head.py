@@ -324,7 +324,7 @@ class SOLOHead(nn.Module):
                 continue
             # input = torch.sigmoid(input)
             
-            loss_ins.append(self.loss_ins(input.unsqueeze(-1), target.unsqueeze(-1)).unsqueeze(0))
+            loss_ins.append(self.loss_ins(input, target).unsqueeze(0))
         loss_ins = torch.cat(loss_ins).mean()
 
         # cate
@@ -383,7 +383,7 @@ class SOLOHead(nn.Module):
         # dice loss
         # human_mask_pred = torch.sigmoid(human_mask_pred)
         
-        human_loss_ins = self.human_loss_ins(human_mask_pred.unsqueeze(-1), human_ins_labels.unsqueeze(-1))
+        human_loss_ins = self.human_loss_ins(human_mask_pred, human_ins_labels)
 
         # for i in range(human_ins_labels.shape[0]):
         #     plt.imshow(human_ins_labels[i].cpu().numpy())
